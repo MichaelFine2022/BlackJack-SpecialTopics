@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class GameLogic {
-    private List<String> deck;
-    private List<String> playerHand;
-    private List<String> dealerHand;
+    private List<Card> deck;
+    private List<Card> playerHand;
+    private List<Card> dealerHand;
 
     public GameLogic() {
         this.deck = new ArrayList<>();
@@ -22,13 +22,13 @@ public class GameLogic {
 
         for (String suit : suits) {
             for (String value : values) {
-                deck.add(value + suit);
+                deck.add(new Card(suit, value));
             }
         }
         Collections.shuffle(deck);
     }
 
-    public String drawCard() {
+    public Card drawCard() {
         return deck.remove(0);
     }
 
@@ -39,11 +39,11 @@ public class GameLogic {
         dealerHand.add(drawCard());
     }
 
-    public List<String> getPlayerHand() {
+    public List<Card> getPlayerHand() {
         return playerHand;
     }
 
-    public List<String> getDealerHand() {
+    public List<Card> getDealerHand() {
         return dealerHand;
     }
 }
