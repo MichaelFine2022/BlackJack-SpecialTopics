@@ -4,8 +4,6 @@ import java.util.List;
 public class Player {
     private String name;
     private List<Card> hand;
-    private List<Card> secondhand;
-    private int betAmount = 0;
     private int score;
     private int aceCount=0;
 
