@@ -14,6 +14,25 @@ public class GameLogic {
         this.playerHand = new ArrayList<>();
         this.dealerHand = new ArrayList<>();
         initializeDeck();
+        gameLoop();
+    }
+    private void gameLoop(){
+        int turn = 0;
+        while(true){
+            if(turn%2 == 0){
+                playerTurn();
+            }
+            else{
+                dealerTurn();
+            }
+            turn++;
+        }
+    }
+    private void playerTurn(){
+        return;
+    }
+    private void dealerTurn(){
+        return;
     }
 
     private void initializeDeck() {
