@@ -11,7 +11,6 @@ public class Player {
         this.name = name;
         this.hand = new ArrayList<>();
     }
-
     public void receiveCard(Card card) {
         hand.add(card);
         updateScore();
