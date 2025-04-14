@@ -15,5 +15,5 @@ public class BlackjackApplication {
 		SpringApplication.run(BlackjackApplication.class, args);
 		Application.launch(GameUI.class);
 	}
-
+ 
 }
