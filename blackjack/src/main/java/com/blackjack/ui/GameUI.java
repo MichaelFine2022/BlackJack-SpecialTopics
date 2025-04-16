@@ -25,12 +25,13 @@ import javafx.stage.Stage;
 
 public class GameUI extends Application {
     private GameLogic game;
-
+    public static Player player;
     @Override
     public void start(Stage primaryStage) {
-        game = new GameLogic();
+        
+        player = new Player("currentGame");
+        game = new GameLogic(player);
         game.startGame();
-        Player player = new Player("currentPlayer");
 
         GridPane gameui = new GridPane();
         gameui.setPrefSize(752, 370);

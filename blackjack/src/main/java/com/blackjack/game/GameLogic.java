@@ -9,15 +9,15 @@ public class GameLogic {
     private List<Card> playerHand;
     private List<Card> dealerHand;
 
-    public GameLogic() {
+    public GameLogic(Player player) {
         this.deck = new ArrayList<>();
-        this.playerHand = new ArrayList<>();
+        this.playerHand = player.getHand();
         this.dealerHand = new ArrayList<>();
         initializeDeck();
     }
 
     private void initializeDeck() {
-        String[] suits = {"♠", "♣", "♦", "♥"};
+        String[] suits = {"S", "C", "D", "H"};
         String[] values = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 
         for (String suit : suits) {
