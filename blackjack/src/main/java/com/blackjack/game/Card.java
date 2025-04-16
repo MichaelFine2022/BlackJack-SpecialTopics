@@ -1,10 +1,11 @@
 package com.blackjack.game;
 
+import javafx.scene.image.Image;
 public class Card {
     private String suit;
     private String rank;
     private int value;
-
+    public Image sprite = new Image("/cards" + value + suit);
     public Card(String suit, String rank) {
         this.suit = suit;
         this.rank = rank;
