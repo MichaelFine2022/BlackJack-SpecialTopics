@@ -12,8 +12,13 @@
         <java.version>17</java.version>
         <spring-boot.version>3.2.4</spring-boot.version>
     </properties>
-
+    
     <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>17.0.1</version>
+        </dependency>
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -1,34 +1,48 @@
 package com.blackjack.game;
 
 import javafx.scene.image.Image;
+import java.io.InputStream;
+
 public class Card {
     private String suit;
-    private String rank;
+    final private String rank;
     private int value;
-    public Image sprite = new Image("/cards" + value + suit);
+    public Image sprite;
+
     public Card(String suit, String rank) {
         this.suit = suit;
         this.rank = rank;
-        if(rank.equals("A")){
-            value = (Integer) 0;
-        }
-        else if(rank.equals("K")){
+        if (rank.equals("A")) {
+            value = 11; // Default Ace value to 11
+        } else if (rank.equals("K") || rank.equals("Q") || rank.equals("J")) {
             value = 10;
-        }
-        else if(rank.equals("Q")){
-            value = 10;
-        }
-        else if(rank.equals("J")){
-            value = 10;
-        }
-        else{
+        } else {
             value = Integer.parseInt(rank);
         }
+        this.sprite = loadImage();
     }
 
-    public String getSuit() { return suit; }
-    public String getRank() { return rank; }
-    public int getValue() { return value; }
+    private Image loadImage() {
+        String imageName = suit.toUpperCase() + rank.toUpperCase() + ".png";
+        InputStream inputStream = getClass().getResourceAsStream("/cards/" + imageName);
+        if (inputStream == null) {
+            System.err.println("Could not load image: /cards/" + imageName);
+            return null;
+        }
+        return new Image(inputStream);
+    }
+
+    public String getSuit() {
+        return suit;
+    }
+
+    public String getRank() {
+        return rank;
+    }
+
+    public int getValue() {
+        return value;
+    }
 
     @Override
     public String toString() {
