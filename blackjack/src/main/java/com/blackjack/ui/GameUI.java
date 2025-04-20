@@ -1,13 +1,18 @@
 package com.blackjack.ui;
 
+import java.util.List;
+
+import com.blackjack.game.Card;
 import com.blackjack.game.GameLogic;
-import com.blackjack.game.Player ;
-import javafx.geometry.Pos;
+import com.blackjack.game.Player;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -17,8 +22,6 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -26,9 +29,16 @@ import javafx.stage.Stage;
 public class GameUI extends Application {
     private GameLogic game;
     public static Player player;
+    private HBox dealerCardDisplay;
+    private HBox playerCardDisplay;
+    private Label playerScoreLabel;
+    private Label dealerScoreLabel;
+    private Button hitButton;
+    private Button standButton;
+
     @Override
     public void start(Stage primaryStage) {
-        
+
         player = new Player("currentGame");
         game = new GameLogic(player);
         game.startGame();
@@ -37,41 +47,128 @@ public class GameUI extends Application {
         gameui.setPrefSize(752, 370);
         gameui.setStyle("-fx-background-color: #eeeeee;");
 
-        Button HitButton = new Button("Hit");
-        HitButton.setPrefWidth(100.00);
-        HitButton.setPrefHeight(50.00);
-        HitButton.setDisable(false);
-        HitButton.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #1b1b1b; -fx-border-color: #626262; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-border-width: 1px;");
-        HitButton.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> { HitButton.setBackground(new Background(new BackgroundFill(Color.web("#c2c2c2"), new CornerRadii(4.00), null))); });
-        HitButton.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> { HitButton.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(4.00), null))); });
+        hitButton = new Button("Hit");
+        hitButton.setPrefWidth(100.00);
+        hitButton.setPrefHeight(50.00);
+        hitButton.setDisable(false);
+        hitButton.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #1b1b1b; -fx-border-color: #626262; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-border-width: 1px;");
+        hitButton.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+            hitButton.setBackground(new Background(new BackgroundFill(Color.web("#c2c2c2"), new CornerRadii(4.00), null)));
+        });
+        hitButton.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
+            hitButton.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(4.00), null)));
+        });
+        hitButton.setOnAction(event -> {
+            Card newCard = game.playerHit();
+            displayPlayerCard(newCard);
+            updateScores();
+            if (game.calculateHandValue(game.getPlayerHand()) > 21) {
+                hitButton.setDisable(true);
+                standButton.setDisable(true);
+                System.out.println("Player Busts!");
 
-        Button StandButton = new Button("Stand");
-        StandButton.setPrefWidth(100.00);
-        StandButton.setPrefHeight(50.00);
-        StandButton.setDisable(false);
-        StandButton.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> { StandButton.setBackground(new Background(new BackgroundFill(Color.web("#c2c2c2"), new CornerRadii(4.00), null))); });
-        StandButton.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> { StandButton.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(4.00), null))); });
-        StandButton.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #1b1b1b; -fx-border-color: #626262; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-border-width: 1px;");
-        
-        HBox dealerUI = new HBox(5);
-        HBox DealerCards = new HBox(5);
-        dealerUI.getChildren().add(DealerCards);
-        HBox playerUI = new HBox(5);
-        HBox PlayerCards = new HBox(5);
-        //PlayerCards.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, null , null)));
-        VBox buttons = new VBox(5);
-        VBox PlayerScore = new VBox(5);
+            }
+        });
 
-        buttons.getChildren().addAll(HitButton, StandButton);
-        playerUI.getChildren().addAll(buttons, PlayerCards, PlayerScore);
-        //playerUI.setBorder(new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID, null , null)));
+        standButton = new Button("Stand");
+        standButton.setPrefWidth(100.00);
+        standButton.setPrefHeight(50.00);
+        standButton.setDisable(false);
+        standButton.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+            standButton.setBackground(new Background(new BackgroundFill(Color.web("#c2c2c2"), new CornerRadii(4.00), null)));
+        });
+        standButton.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
+            standButton.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(4.00), null)));
+        });
+        standButton.setOnAction(event -> {
+            hitButton.setDisable(true);
+            standButton.setDisable(true);
+            // Dealer turn
+            List<Card> dealerHand = game.dealerPlay();
+            displayDealerHand();
+            updateScores();
+            String result = game.determineWinner();
+            System.out.println(result);
+
+        });
+
+        dealerCardDisplay = new HBox(5);
+        playerCardDisplay = new HBox(5);
+        playerCardDisplay.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, null, null)));
+        VBox buttons = new VBox(5, hitButton, standButton);
+        playerScoreLabel = new Label("Player: 0");
+        dealerScoreLabel = new Label("Dealer: 0");
+        VBox playerInfo = new VBox(5, buttons, playerScoreLabel);
+        VBox dealerInfo = new VBox(5, dealerScoreLabel);
+
+        HBox playerUI = new HBox(10, playerInfo, playerCardDisplay);
+        playerUI.setBorder(new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID, null, null)));
+        HBox dealerUI = new HBox(10, dealerInfo, dealerCardDisplay);
+
         gameui.getChildren().addAll(dealerUI, playerUI);
         gameui.setAlignment(Pos.BOTTOM_LEFT);
 
-        GridPane.setMargin(playerUI, new Insets(10,10,10,10));
-        GridPane.setMargin(dealerUI, new Insets(10,10,10,10));
-        Scene scene = new Scene(gameui, 752, 370);
+        displayInitialHands();
+        updateScores();
+
+        GridPane.setMargin(playerUI, new Insets(10));
+        GridPane.setMargin(dealerUI, new Insets(10));
+        Scene scene = new Scene(gameui, 752, 370, Color.CHARTREUSE);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void displayCard(Card card, HBox cardDisplayArea) {
+        if (card != null && card.sprite != null) {
+            ImageView cardImageView = new ImageView(card.sprite);
+            cardImageView.setFitWidth(75);
+            cardImageView.setFitHeight(100);
+            cardDisplayArea.getChildren().add(cardImageView);
+        } else {
+            System.err.println("Error: Card or sprite is null.");
+        }
+    }
+
+    private void displayPlayerCard(Card card) {
+        displayCard(card, playerCardDisplay);
+    }
+
+    private void displayDealerCard(Card card) {
+        displayCard(card, dealerCardDisplay);
+    }
+
+    private void displayInitialHands() {
+        playerCardDisplay.getChildren().clear();
+        dealerCardDisplay.getChildren().clear();
+        for (Card card : game.getPlayerHand()) {
+            displayCard(card, playerCardDisplay);
+        }
+        for (Card card : game.getDealerHand()) {
+            displayCard(card, dealerCardDisplay);
+        }
+        
+    }
+
+    private void displayPlayerHand() {
+        playerCardDisplay.getChildren().clear();
+        for (Card card : game.getPlayerHand()) {
+            displayCard(card, playerCardDisplay);
+        }
+    }
+
+    private void displayDealerHand() {
+        dealerCardDisplay.getChildren().clear();
+        for (Card card : game.getDealerHand()) {
+            displayCard(card, dealerCardDisplay);
+        }
+    }
+
+    private void updateScores() {
+        playerScoreLabel.setText("Player: " + game.calculateHandValue(game.getPlayerHand()));
+        dealerScoreLabel.setText("Dealer: " + game.calculateHandValue(game.getDealerHand()));
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }
