@@ -84,6 +84,7 @@ public class GameUI extends Application {
             hitButton.setDisable(true);
             standButton.setDisable(true);
             // Dealer turn
+            @SuppressWarnings("unused")
             List<Card> dealerHand = game.dealerPlay();
             displayDealerHand();
             updateScores();
@@ -133,6 +134,7 @@ public class GameUI extends Application {
         displayCard(card, playerCardDisplay);
     }
 
+    @SuppressWarnings("unused")
     private void displayDealerCard(Card card) {
         displayCard(card, dealerCardDisplay);
     }
@@ -149,6 +151,7 @@ public class GameUI extends Application {
         
     }
 
+    @SuppressWarnings("unused")
     private void displayPlayerHand() {
         playerCardDisplay.getChildren().clear();
         for (Card card : game.getPlayerHand()) {

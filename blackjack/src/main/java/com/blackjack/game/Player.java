@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
+    @SuppressWarnings("FieldMayBeFinal")
     private String name;
     private List<Card> hand;
 
@@ -51,6 +52,7 @@ public class Player {
         hand.clear();
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void setHand(ArrayList arrayList) {
         hand = arrayList;
     }

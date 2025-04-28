@@ -4,11 +4,14 @@ import javafx.scene.image.Image;
 import java.io.InputStream;
 
 public class Card {
+    @SuppressWarnings("FieldMayBeFinal")
     private String suit;
     final private String rank;
+    @SuppressWarnings("FieldMayBeFinal")
     private int value;
     public Image sprite;
 
+    @SuppressWarnings("ConvertToStringSwitch")
     public Card(String suit, String rank) {
         this.suit = suit;
         this.rank = rank;
@@ -23,7 +26,7 @@ public class Card {
     }
 
     private Image loadImage() {
-        String imageName = suit.toUpperCase() + rank.toUpperCase() + ".png";
+        String imageName = rank.toUpperCase() + suit.toUpperCase() + ".png";
         InputStream inputStream = getClass().getResourceAsStream("/cards/" + imageName);
         if (inputStream == null) {
             System.err.println("Could not load image: /cards/" + imageName);

@@ -8,13 +8,14 @@ public class GameLogic {
     public List<Card> deck;
     public List<Card> playerHand;
     public List<Card> dealerHand;
-    private Player player; // Store a reference to the Player
+    @SuppressWarnings("FieldMayBeFinal")
+    private Player player; 
 
     public GameLogic(Player player) {
         this.deck = new ArrayList<>();
-        this.playerHand = new ArrayList<>(); // Create a new hand for GameLogic
+        this.playerHand = new ArrayList<>(); 
         this.dealerHand = new ArrayList<>();
-        this.player = player; // Store the Player object
+        this.player = player; 
         initializeDeck();
     }
 
@@ -88,11 +89,11 @@ public class GameLogic {
     }
 
     public List<Card> getPlayerHand() {
-        return Collections.unmodifiableList(playerHand); // Return an unmodifiable list
+        return Collections.unmodifiableList(playerHand); 
     }
 
     public List<Card> getDealerHand() {
-        return Collections.unmodifiableList(dealerHand); // Return an unmodifiable list
+        return Collections.unmodifiableList(dealerHand); 
     }
 
     // Method to check for Blackjack
