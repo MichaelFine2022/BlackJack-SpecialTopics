@@ -7,25 +7,17 @@ import com.blackjack.game.GameLogic;
 import com.blackjack.game.Player;
 
 import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.geometry.*;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+@SuppressWarnings("unused")
 public class GameUI extends Application {
     private GameLogic game;
     public static Player player;
@@ -38,14 +30,17 @@ public class GameUI extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-
+        primaryStage.setFullScreen(true);
         player = new Player("currentGame");
         game = new GameLogic(player);
         game.startGame();
 
         GridPane gameui = new GridPane();
-        gameui.setPrefSize(752, 370);
         gameui.setStyle("-fx-background-color: #eeeeee;");
+        javafx.scene.layout.RowConstraints row1 = new javafx.scene.layout.RowConstraints();
+        javafx.scene.layout.RowConstraints row2 = new javafx.scene.layout.RowConstraints();
+        row1.setVgrow(javafx.scene.layout.Priority.ALWAYS);
+        gameui.getRowConstraints().addAll(row1, row2);
 
         hitButton = new Button("Hit");
         hitButton.setPrefWidth(100.00);
@@ -66,7 +61,6 @@ public class GameUI extends Application {
                 hitButton.setDisable(true);
                 standButton.setDisable(true);
                 System.out.println("Player Busts!");
-
             }
         });
 
@@ -90,12 +84,10 @@ public class GameUI extends Application {
             updateScores();
             String result = game.determineWinner();
             System.out.println(result);
-
         });
 
         dealerCardDisplay = new HBox(5);
         playerCardDisplay = new HBox(5);
-        playerCardDisplay.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, null, null)));
         VBox buttons = new VBox(5, hitButton, standButton);
         playerScoreLabel = new Label("Player: 0");
         dealerScoreLabel = new Label("Dealer: 0");
@@ -103,17 +95,18 @@ public class GameUI extends Application {
         VBox dealerInfo = new VBox(5, dealerScoreLabel);
 
         HBox playerUI = new HBox(10, playerInfo, playerCardDisplay);
-        playerUI.setBorder(new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID, null, null)));
         HBox dealerUI = new HBox(10, dealerInfo, dealerCardDisplay);
 
-        gameui.getChildren().addAll(dealerUI, playerUI);
-        gameui.setAlignment(Pos.BOTTOM_LEFT);
+        gameui.add(dealerUI, 0, 0);
+        GridPane.setMargin(dealerUI, new Insets(10));
+        GridPane.setHalignment(dealerUI, HPos.CENTER); 
 
+        gameui.add(playerUI, 0, 1);
+        GridPane.setMargin(playerUI, new Insets(10));
+        GridPane.setHalignment(playerUI, HPos.CENTER);
         displayInitialHands();
         updateScores();
 
-        GridPane.setMargin(playerUI, new Insets(10));
-        GridPane.setMargin(dealerUI, new Insets(10));
         Scene scene = new Scene(gameui, 752, 370, Color.CHARTREUSE);
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -148,7 +141,7 @@ public class GameUI extends Application {
         for (Card card : game.getDealerHand()) {
             displayCard(card, dealerCardDisplay);
         }
-        
+
     }
 
     @SuppressWarnings("unused")
