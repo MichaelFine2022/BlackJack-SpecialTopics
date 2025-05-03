@@ -9,7 +9,6 @@ import javafx.application.Application;
 
 @SpringBootApplication
 public class BlackjackApplication {
-
 	public static void main(String[] args) {
 		System.out.println("RUNNInG");
 		SpringApplication.run(BlackjackApplication.class, args);
