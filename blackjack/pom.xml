@@ -60,6 +60,12 @@
             <version>17.0.1</version>
         </dependency>
 
+        <!-- json handler -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20250107</version>
+        </dependency>
     </dependencies>
 
     <build>

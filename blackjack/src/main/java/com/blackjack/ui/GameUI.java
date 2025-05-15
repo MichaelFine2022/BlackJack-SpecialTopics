@@ -1,19 +1,34 @@
 package com.blackjack.ui;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
+
+import org.json.JSONObject;
 
 import com.blackjack.game.Card;
 import com.blackjack.game.GameLogic;
 import com.blackjack.game.Player;
 
 import javafx.application.Application;
-import javafx.geometry.*;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -28,6 +43,41 @@ public class GameUI extends Application {
     private Button hitButton;
     private Button standButton;
 
+    private final ObservableList<String> games = FXCollections.observableArrayList();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private static final String API_URL = "http://127.0.0.1:5000/api/games";
+    private void addGame(String playerInput, String scoreInput) {
+        String player = "Admin";
+        String scoreStr = scoreInput;
+        try {
+            int score = Integer.parseInt(scoreStr);
+            JSONObject gameData = new JSONObject();
+            gameData.put("player", player);
+            gameData.put("score", score);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(API_URL))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(gameData.toString()))
+                    .build();
+
+            httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenAccept(response -> {
+                        if (response.statusCode() == 201) {
+                            System.out.println("Game added successfully to Flask backend.");
+                            Platform.runLater(() -> {
+                                fetchGames(); 
+                            });
+                        } else {
+                            System.err.println("Failed to add game: " + response.statusCode() + " - " + response.body());
+                        }
+                    });
+
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid score format.");
+        } 
+    }
+    private void fetchGames() {}
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setFullScreen(true);
