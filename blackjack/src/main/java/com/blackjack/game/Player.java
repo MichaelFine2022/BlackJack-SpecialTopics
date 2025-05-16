@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
-    @SuppressWarnings("FieldMayBeFinal")
-    private String name;
     private List<Card> hand;
+    public String name;
+
 
     public Player(String name) {
         this.name = name;

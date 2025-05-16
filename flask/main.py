@@ -6,7 +6,17 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blackjack.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+class completedGame(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    score = db.Column(db.Integer)
+    def __init__(self, username, score):
+        self.username = username
+        self.score = score
+        
 
+    def __repr__(self):
+        return f"<CompletedGame {self.id} for {self.username} with score {self.score}>"
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -59,10 +69,12 @@ def get_users():
         return jsonify([{'id': u.id, 'username': u.username} for u in users])
 
 @app.route('/api/games', methods=['POST'])
-def create_game():
-    local_user = get_or_create_local_user()
+def add_game():
     with app.app_context():
-        new_game = Game(user_id=local_user.id)
+        data = request.get_json()
+        
+        new_game = completedGame(data.get("player"),data.get("score"))
+
         db.session.add(new_game)
         db.session.commit()
         return jsonify({'game_id': new_game.id}), 201

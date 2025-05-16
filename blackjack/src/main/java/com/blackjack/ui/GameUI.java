@@ -16,6 +16,8 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -46,11 +48,11 @@ public class GameUI extends Application {
     private final ObservableList<String> games = FXCollections.observableArrayList();
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private static final String API_URL = "http://127.0.0.1:5000/api/games";
-    private void addGame(String playerInput, String scoreInput) {
+    private void addGame(String playerInput, Integer scoreInput) {
         String player = "Admin";
-        String scoreStr = scoreInput;
+        Integer score = scoreInput;
         try {
-            int score = Integer.parseInt(scoreStr);
+            
             JSONObject gameData = new JSONObject();
             gameData.put("player", player);
             gameData.put("score", score);
@@ -84,7 +86,6 @@ public class GameUI extends Application {
         player = new Player("currentGame");
         game = new GameLogic(player);
         game.startGame();
-
         GridPane gameui = new GridPane();
         gameui.setStyle("-fx-background-color: #eeeeee;");
         javafx.scene.layout.RowConstraints row1 = new javafx.scene.layout.RowConstraints();
@@ -103,14 +104,20 @@ public class GameUI extends Application {
         hitButton.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
             hitButton.setBackground(new Background(new BackgroundFill(Color.web("#ffffff"), new CornerRadii(4.00), null)));
         });
-        hitButton.setOnAction(event -> {
-            Card newCard = game.playerHit();
-            displayPlayerCard(newCard);
-            updateScores();
-            if (game.calculateHandValue(game.getPlayerHand()) > 21) {
-                hitButton.setDisable(true);
-                standButton.setDisable(true);
-                System.out.println("Player Busts!");
+        hitButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Card newCard = game.playerHit();
+                displayPlayerCard(newCard);
+                updateScores();
+                if (game.calculateHandValue(game.getPlayerHand()) > 21) {
+                    hitButton.setDisable(true);
+                    standButton.setDisable(true);
+                    System.out.println("Player Busts!");
+                    addGame(player.name, -1);
+                    System.out.println("GAME RECORDED");
+                }
+                
             }
         });
 
@@ -127,13 +134,14 @@ public class GameUI extends Application {
         standButton.setOnAction(event -> {
             hitButton.setDisable(true);
             standButton.setDisable(true);
-            // Dealer turn
             @SuppressWarnings("unused")
             List<Card> dealerHand = game.dealerPlay();
             displayDealerHand();
             updateScores();
             String result = game.determineWinner();
             System.out.println(result);
+            addGame(player.name, game.calculateHandValue(game.getPlayerHand()));
+            System.out.println("GAME RECORDED");
         });
 
         dealerCardDisplay = new HBox(5);
