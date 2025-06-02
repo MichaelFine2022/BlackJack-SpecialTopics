@@ -162,37 +162,27 @@ public class Login extends Application {
         loginButton.setOnAction(event -> {
             String username = usernameField.getText();
             String password = passwordField.getText();
-
+        
             if (username.isEmpty() || password.isEmpty()) {
                 errorMessageLabel.setText("Please enter both username and password.");
                 errorMessageLabel.setVisible(true);
             } else {
                 errorMessageLabel.setVisible(false);
-                System.out.println("Login attempt - Username: '" + username + "', Password: '" + password + "'");
-                // REMEMBER TO Replace with actual authentication logic to firebase BEFORE DELIVERABLE
-                if (username.equals("admin") && password.equals("admin")) { 
-                    System.out.println("Login Successful! Navigating to Menu Page...");
-
-                    
-                    MenuPage menuPage = new MenuPage();
-                    try {
-                        
-                        menuPage.init();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.err.println("Could not initialize MenuPage due to an error.");
-                        return; 
+        
+                try {
+                    FirebaseAuthHelper.initializeFirebase();
+        
+                    if (FirebaseAuthHelper.userExists(username)) {
+                        errorMessageLabel.setText("Account exists, but Firebase Admin SDK cannot verify password directly.");
+                        errorMessageLabel.setVisible(true);
+                    } else {
+                        errorMessageLabel.setText("User does not exist.");
+                        errorMessageLabel.setVisible(true);
                     }
-                    BorderPane newRoot = menuPage.createMenuPane(primaryStage);
-
-                    Scene menuScene = new Scene(newRoot, 800, 600);
-
-                    primaryStage.setScene(menuScene);
-
-                    primaryStage.setTitle("Blackjack Menu");
-
-                } else {
-                    errorMessageLabel.setText("Invalid username or password.");
+        
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    errorMessageLabel.setText("Login failed due to system error.");
                     errorMessageLabel.setVisible(true);
                 }
             }
