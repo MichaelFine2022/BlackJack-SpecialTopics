@@ -22,6 +22,10 @@ import java.io.IOException;
 
 public class MenuPage extends Application {
     private Font loadedFont;
+    public String username;
+    public MenuPage(String username) {
+        this.username = username;
+    }
 
     @Override
     public void init() throws Exception {
@@ -116,7 +120,8 @@ public class MenuPage extends Application {
         });
 
         multiPlayerButton.setOnAction(event -> {
-            System.out.println("Multiplayer button clicked!");
+            LobbyPage lobby = new LobbyPage(stage, username);
+            lobby.show();
         });
 
         tutorialButton.setOnAction(event -> {

@@ -167,7 +167,7 @@ public class Login extends Application {
                     boolean isValid = FirebaseAuthHelper.validateLogin(username, password);
                     if (isValid) {
                         System.out.println("Login successful!");
-                        MenuPage menuPage = new MenuPage();
+                        MenuPage menuPage = new MenuPage(username);
                         menuPage.start(primaryStage);
 
                     } else {

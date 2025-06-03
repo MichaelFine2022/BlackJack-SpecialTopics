@@ -211,7 +211,7 @@ public class GameUI {
         });
 
         backToMenuButton.setOnAction(event -> {
-            MenuPage menuPage = new MenuPage();
+            MenuPage menuPage = new MenuPage(exitButtonPressedStyle);
             try {
                 menuPage.init();
             } catch (Exception e) {

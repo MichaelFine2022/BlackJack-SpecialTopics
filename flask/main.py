@@ -48,6 +48,24 @@ class Turn(db.Model):
 
     def __repr__(self):
         return f"<Turn {self.turn_number} in Game {self.game_id}>"
+class MultiplayerGame(db.Model):
+    id = db.Column(db.String, primary_key=True)  
+    start_time = db.Column(db.DateTime, default=datetime.utcnow)
+    dealer_hand = db.Column(db.String)
+    current_turn = db.Column(db.String)  
+    is_active = db.Column(db.Boolean, default=True)
+    winner = db.Column(db.String, nullable=True)
+
+    players = db.relationship('MultiplayerPlayer', backref='game', lazy=True)
+
+class MultiplayerPlayer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.String, db.ForeignKey('multiplayer_game.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    username = db.Column(db.String, nullable=False)
+    hand = db.Column(db.String)  
+    status = db.Column(db.String, default='playing')  
+    is_host = db.Column(db.Boolean, default=False)
 
 with app.app_context():
     db.create_all()
@@ -61,6 +79,30 @@ def get_or_create_local_user(username="Local Player"):
             db.session.add(user)
             db.session.commit()
         return user
+
+def sync_to_firebase(game_id):
+    from firebase_admin import firestore
+    fb = firestore.client()
+
+    game = MultiplayerGame.query.get(game_id)
+    players = MultiplayerPlayer.query.filter_by(game_id=game_id).all()
+
+    fb_data = {
+        "dealer_hand": game.dealer_hand,
+        "current_turn": game.current_turn,
+        "is_active": game.is_active,
+        "winner": game.winner,
+        "players": {
+            p.username: {
+                "hand": p.hand,
+                "status": p.status,
+                "is_host": p.is_host
+            } for p in players
+        }
+    }
+
+    fb.collection("games").document(game_id).set(fb_data)
+
 
 @app.route('/api/users', methods=['GET'])
 def get_users():
