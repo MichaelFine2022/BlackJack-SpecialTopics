@@ -62,16 +62,13 @@ public class Login extends Application {
         loginForm.setMaxWidth(350); 
 
         Label titleLabel = new Label("Welcome to Blackjack!");
-        titleLabel.setFont(loadedFont != null ? Font.font(loadedFont.getFamily(), FontWeight.BOLD, 24) : Font.font("System", FontWeight.BOLD, 24));
-        titleLabel.setStyle("-fx-text-fill: #333333;");
+                titleLabel.setStyle("-fx-text-fill: #333333;");
 
         Label usernameLabel = new Label("Username");
-        usernameLabel.setFont(loadedFont); 
         usernameLabel.setStyle("-fx-text-fill: #555555;");
 
         TextField usernameField = new TextField();
         usernameField.setPromptText("Enter your username"); 
-        usernameField.setFont(loadedFont); 
         usernameField.setPrefHeight(32); 
         usernameField.setMaxWidth(250); 
         usernameField.setStyle(
@@ -86,12 +83,10 @@ public class Login extends Application {
         );
 
         Label passwordLabel = new Label("Password");
-        passwordLabel.setFont(loadedFont);
         passwordLabel.setStyle("-fx-text-fill: #555555;");
 
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Enter your password"); 
-        passwordField.setFont(loadedFont);
         passwordField.setPrefHeight(32); 
         passwordField.setMaxWidth(250);
         passwordField.setStyle(
@@ -106,12 +101,10 @@ public class Login extends Application {
         );
 
         Label errorMessageLabel = new Label(""); 
-        errorMessageLabel.setFont(loadedFont != null ? Font.font(loadedFont.getFamily(), FontWeight.BOLD, 13) : Font.font("System", FontWeight.BOLD, 13));
         errorMessageLabel.setTextFill(Color.web("#dc3545")); 
         errorMessageLabel.setVisible(false); 
 
         Button loginButton = new Button("Login");
-        loginButton.setFont(loadedFont != null ? Font.font(loadedFont.getFamily(), FontWeight.BOLD, 15) : Font.font("System", FontWeight.BOLD, 15));
         loginButton.setPrefWidth(200); 
         loginButton.setPrefHeight(38);
 
@@ -128,7 +121,6 @@ public class Login extends Application {
 
 
         Button signUpButton = new Button("Sign Up");
-        signUpButton.setFont(loadedFont != null ? Font.font(loadedFont.getFamily(), FontWeight.BOLD, 15) : Font.font("System", FontWeight.BOLD, 15));
         signUpButton.setPrefWidth(200); 
         signUpButton.setPrefHeight(38);
 
@@ -172,11 +164,14 @@ public class Login extends Application {
                 try {
                     FirebaseAuthHelper.initializeFirebase();
         
-                    if (FirebaseAuthHelper.userExists(username)) {
-                        errorMessageLabel.setText("Account exists, but Firebase Admin SDK cannot verify password directly.");
-                        errorMessageLabel.setVisible(true);
+                    boolean isValid = FirebaseAuthHelper.validateLogin(username, password);
+                    if (isValid) {
+                        System.out.println("Login successful!");
+                        MenuPage menuPage = new MenuPage();
+                        menuPage.start(primaryStage);
+
                     } else {
-                        errorMessageLabel.setText("User does not exist.");
+                        errorMessageLabel.setText("Invalid username or password.");
                         errorMessageLabel.setVisible(true);
                     }
         
@@ -189,11 +184,9 @@ public class Login extends Application {
         });
 
         signUpButton.setOnAction(event -> {
-            System.out.println("Sign Up button clicked. Implement navigation to registration screen.");
-            
+            SignUp signUp = new SignUp();
+            signUp.show(primaryStage);
         });
-
-
 
         Scene scene = new Scene(root, 784, 388); 
         primaryStage.setScene(scene);
