@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,12 +133,15 @@ public class LobbyPage {
 
         try {
             if (hostedGameId != null) {
+                
                 DocumentSnapshot snapshot = db.collection("games").document(hostedGameId).get().get();
+                
                 if (!snapshot.exists() || !"waiting".equals(snapshot.getString("status"))) {
-                    hostedGameId = null;
+                    hostedGameId = null; 
                 }
             }
 
+            
             ApiFuture<QuerySnapshot> future = db.collection("games")
                     .whereEqualTo("status", "waiting")
                     .get();
@@ -149,6 +153,7 @@ public class LobbyPage {
                 for (QueryDocumentSnapshot doc : documents) {
                     String gameId = doc.getId();
 
+                
                     if (hostedGameId != null && gameId.equals(hostedGameId)) {
                         continue;
                     }
@@ -221,7 +226,7 @@ public class LobbyPage {
             ApiFuture<WriteResult> future = db.collection("games").document(hostedGameId).delete();
             future.get();
             System.out.println("Stopped hosting game: " + hostedGameId);
-            hostedGameId = null;
+            hostedGameId = null; 
             CompletableFuture.runAsync(this::reloadGames);
             Platform.runLater(() -> {
                 Label info = new Label("Successfully stopped hosting your game.");
@@ -258,11 +263,11 @@ public class LobbyPage {
         }
 
         try {
-            db.runTransaction(transaction -> {
+            String newGameId = db.runTransaction(transaction -> {
                 QuerySnapshot existingGameSnapshot = transaction.get(
                         db.collection("games")
                                 .whereEqualTo("host", currentFirebaseUserId)
-                                .whereEqualTo("status", "waiting")
+                                .whereEqualTo("status", "waiting") 
                 ).get();
 
                 if (!existingGameSnapshot.isEmpty()) {
@@ -270,19 +275,28 @@ public class LobbyPage {
                     hostedGameId = existingGame.getId();
                     System.out.println("You are already hosting a game: " + hostedGameId);
                     Platform.runLater(() -> {
-                        Label info = new Label("You are already hosting game: " + hostedGameId);
+                        Label info = new Label("You are already hosting game: " + hostedGameId + ". Navigating to it.");
                         info.setTextFill(Color.YELLOW);
                         gameListContainer.getChildren().add(info);
                     });
-                    return null;
+                    return hostedGameId;
                 }
 
                 Map<String, Object> gameData = new HashMap<>();
                 gameData.put("host", currentFirebaseUserId);
-                gameData.put("status", "waiting");
-                gameData.put("createdAt", FieldValue.serverTimestamp());
                 gameData.put("player1", currentFirebaseUserId);
-                gameData.put("player2", null);
+                gameData.put("player2", null); 
+                gameData.put("status", "waiting"); 
+                gameData.put("started", false); 
+                gameData.put("createdAt", FieldValue.serverTimestamp());
+                gameData.put("player1Cards", new ArrayList<>());
+                gameData.put("player2Cards", new ArrayList<>());
+                gameData.put("dealerCards", new ArrayList<>());
+                gameData.put("player1Score", 0);
+                gameData.put("player2Score", 0);
+                gameData.put("turn", null); 
+                gameData.put("gameMessage", "Waiting for another player or ready to start.");
+
 
                 DocumentReference newGameRef = db.collection("games").document();
                 transaction.set(newGameRef, gameData);
@@ -290,14 +304,16 @@ public class LobbyPage {
                 hostedGameId = newGameRef.getId();
                 System.out.println("New game created with ID: " + hostedGameId);
                 Platform.runLater(() -> {
-                    Label info = new Label("Successfully created and are hosting game: " + hostedGameId);
+                    Label info = new Label("Successfully created and are hosting game: " + hostedGameId + ". Entering game.");
                     info.setTextFill(Color.LIMEGREEN);
                     gameListContainer.getChildren().add(info);
                 });
-                return null;
+                return hostedGameId;
             }).get();
 
-            CompletableFuture.runAsync(this::reloadGames);
+            if (newGameId != null) {
+                Platform.runLater(() -> navigateToGame(newGameId));
+            }
 
         } catch (InterruptedException | ExecutionException e) {
             System.err.println("Error creating game: " + e.getMessage());
@@ -370,21 +386,13 @@ public class LobbyPage {
                     String status = (String) gameData.getOrDefault("status", "unknown");
                     String player1Id = (String) gameData.get("player1");
                     String player2Id = (String) gameData.get("player2");
+                    boolean started = (Boolean) gameData.getOrDefault("started", false);
+
 
                     if (currentFirebaseUserId.equals(player1Id) || (player2Id != null && currentFirebaseUserId.equals(player2Id))) {
                         System.out.println("You are already part of this game: " + gameId);
                         Platform.runLater(() -> {
-                            navigateToGame(gameId);
-                        });
-                        return null;
-                    }
-
-                    if (!"waiting".equals(status)) {
-                        System.out.println("Game '" + gameId + "' is no longer joinable (Status: " + status + ").");
-                        Platform.runLater(() -> {
-                            Label info = new Label("Game '" + gameId + "' is no longer available to join.");
-                            info.setTextFill(Color.YELLOW);
-                            gameListContainer.getChildren().add(info);
+                            navigateToGame(gameId); 
                         });
                         return null;
                     }
@@ -399,10 +407,30 @@ public class LobbyPage {
                         return null;
                     }
 
+                    
+                    if (!"waiting".equals(status) && started && player2Id != null) {
+                        System.out.println("Game '" + gameId + "' is already full or explicitly not joinable (Status: " + status + ").");
+                        Platform.runLater(() -> {
+                            Label info = new Label("Game '" + gameId + "' is no longer available to join.");
+                            info.setTextFill(Color.YELLOW);
+                            gameListContainer.getChildren().add(info);
+                        });
+                        return null;
+                    }
+
+
                     Map<String, Object> updates = new HashMap<>();
                     updates.put("player2", currentFirebaseUserId);
-                    updates.put("status", "in-progress");
                     updates.put("joinedAt", FieldValue.serverTimestamp());
+                    updates.put("player2Cards", new ArrayList<>());
+                    updates.put("player2Score", 0);
+
+                    updates.put("gameMessage", "Player " + currentFirebaseUserId + " has joined. ");
+                    if (started) {
+                        updates.put("gameMessage", updates.get("gameMessage") + "Game is in progress. Wait for next round.");
+                    } else {
+                        updates.put("gameMessage", updates.get("gameMessage") + "Waiting for host to deal.");
+                    }
 
                     transaction.update(gameRef, updates);
 
@@ -428,14 +456,10 @@ public class LobbyPage {
     }
 
     private void navigateToGame(String gameId) {
-        System.out.println("Navigating to GameUI for game: " + gameId);
-        GameUI gameUI = new GameUI(stage);
-        gameUI.init();
-
-        stage.getScene().setRoot(gameUI.createGamePane());
-        stage.setTitle("Blackjack Game: " + gameId);
-        stage.sizeToScene();
-        stage.centerOnScreen();
+        System.out.println("Navigating to MultiplayerGame for game: " + gameId + " (Host: " + (hostedGameId != null && hostedGameId.equals(gameId) ? "Yes" : "No") + ")");
+        //Displays the multiplayer Game JavaFX scene!
+        MultiplayerGame game = new MultiplayerGame(stage, gameId, currentFirebaseUserId, hostedGameId != null && hostedGameId.equals(gameId));
+        game.show();
     }
 
 
